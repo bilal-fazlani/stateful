@@ -8,6 +8,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "stateful",
     libraryDependencies ++= Seq(
+      Akka.`akka-stream-typed`,
       Libs.`scalatest` % Test,
     )
   )
