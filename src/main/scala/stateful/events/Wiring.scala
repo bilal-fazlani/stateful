@@ -1,5 +1,6 @@
 package stateful.events
-import java.util.concurrent.{Executors, ScheduledExecutorService}
+
+import java.util.concurrent.Executors
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
@@ -7,13 +8,14 @@ import akka.stream.{ActorMaterializer, Materializer}
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 class Wiring {
-  lazy val scheduledExecutorService: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor()
-  lazy val singleEC: ExecutionContextExecutorService          = ExecutionContext.fromExecutorService(scheduledExecutorService)
 
-  implicit lazy val system: ActorSystem = ActorSystem("stateful")
-  implicit lazy val mat: Materializer   = ActorMaterializer()
+  def makeEc(): ExecutionContextExecutorService =
+    ExecutionContext.fromExecutorService(Executors.newSingleThreadScheduledExecutor())
 
-  lazy val timer          = new Timer(scheduledExecutorService)
-  lazy val ledger         = new Ledger(timer)
+  implicit lazy val actorSystem: ActorSystem = ActorSystem("stateful")
+  implicit lazy val mat: Materializer        = ActorMaterializer()
+
+  lazy val timer          = new Timer(actorSystem)
+  lazy val ledger         = new Ledger(timer)(makeEc())
   lazy val accountFactory = new AccountFactory(ledger, mat)
 }

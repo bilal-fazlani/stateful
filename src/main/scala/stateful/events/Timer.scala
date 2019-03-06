@@ -1,15 +1,15 @@
 package stateful.events
 
-import java.util.concurrent.ScheduledExecutorService
+import akka.actor.ActorSystem
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 
-class Timer(scheduledExecutorService: ScheduledExecutorService) {
+class Timer(actorSystem: ActorSystem) {
 
-  def delay[T](duration: FiniteDuration)(f: () => T): Future[T] = {
+  def delay[T](duration: FiniteDuration)(f: () => T)(implicit ec: ExecutionContext): Future[T] = {
     val p: Promise[T] = Promise()
-    scheduledExecutorService.schedule(() => p.success(f()), duration.length, duration.unit)
+    actorSystem.scheduler.scheduleOnce(duration: FiniteDuration)(p.success(f()))
     p.future
   }
 

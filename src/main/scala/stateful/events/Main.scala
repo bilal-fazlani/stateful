@@ -1,19 +1,23 @@
 package stateful.events
 
 object Main {
+
   def main(args: Array[String]): Unit = {
     val wiring = new Wiring
+    val setup  = new Setup(wiring)
+
     import wiring._
+    import setup._
 
-    val account1 = accountFactory.make(1, singleEC)
-    val account2 = accountFactory.make(2, singleEC)
-
-    Reports.aggregate(List(account1, account2)).runForeach(println)
-
+    setup.runSetup()
     Thread.sleep(2000)
-    account1.deposit(10)
-    account2.deposit(100)
-    account1.withdraw(5)
-    account2.withdraw(50)
+
+    println("*********************")
+    println(ledger.actionsFor(1).length)
+    println(accounts(0).actions.length)
+    println(ledger.actionsFor(1) == accounts(0).actions)
+    println(accounts.forall(_.balance == 0))
+
+//    setup.shell()
   }
 }

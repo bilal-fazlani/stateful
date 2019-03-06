@@ -8,10 +8,12 @@ import stateful.events.Action.{Deposit, Withdrawal}
 import scala.concurrent.{ExecutionContext, Future}
 
 class Account(accountNumber: Int, ledger: Ledger)(implicit ec: ExecutionContext, mat: Materializer) {
-  private var balance = 0
-  private var actions = List.empty[Action]
+  //public only for demo/debugging
+  var balance = 0
+  //public only for demo/debugging
+  var actions = List.empty[Action]
 
-  private val (queue, _stream) = Source.queue[Action](1024, OverflowStrategy.dropHead).preMaterialize()
+  private val (queue, _stream) = Source.queue[Action](8192, OverflowStrategy.dropHead).preMaterialize()
 
   def deposit(amount: Int): Future[Unit] = Future.unit.flatMap { _ =>
     val deposit = Deposit(accountNumber, amount)

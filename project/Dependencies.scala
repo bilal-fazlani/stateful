@@ -8,6 +8,7 @@ object Libs {
   val `play-json-derived-codecs` = "org.julienrf"           %% "play-json-derived-codecs" % "5.0.0"
   val `enumeratum`               = "com.beachape"           %% "enumeratum"               % "1.5.13"
   val `enumeratum-play-json`     = "com.beachape"           %% "enumeratum-play-json"     % "1.5.16"
+  val `ammonite`                 = "com.lihaoyi"            % "ammonite"                  % "1.6.3-5-c25dc3a" cross CrossVersion.full
 }
 
 object Akka {
