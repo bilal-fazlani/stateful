@@ -1,4 +1,6 @@
 package stateful.events
+import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, Future}
 
 object Main {
 
@@ -13,11 +15,17 @@ object Main {
     Thread.sleep(2000)
 
     println("*********************")
-    println(ledger.actionsFor(1).length)
-    println(accounts(0).actions.length)
-    println(ledger.actionsFor(1) == accounts(0).actions)
-    println(accounts.forall(_.balance == 0))
+    println(ledger.actionsFor(1).get.length)
+    println(accounts(0).actions.get.length)
+    println(ledger.actionsFor(1).get == accounts(0).actions.get)
+    println((accounts(0).actions.get ::: accounts(1).actions.get).toSet == wealthAccount.actions.get.toSet)
+    println(accounts.forall(_.balance.get == 0))
+    println(wealthAccount.balance.get == 0)
 
 //    setup.shell()
+  }
+
+  implicit class FutureTestOnly[T](f: Future[T]) {
+    def get: T = Await.result(f, 10.seconds)
   }
 }

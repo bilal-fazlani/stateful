@@ -3,7 +3,7 @@ import akka.NotUsed
 import akka.stream.scaladsl.Source
 import stateful.events.Action.{Deposit, Withdrawal}
 
-object Reports {
+object Streams {
   def aggregate(accounts: List[Account]): Source[Action, NotUsed] = {
     accounts.map(_.actionStream).foldLeft(Source.empty[Action])(_ merge _)
   }

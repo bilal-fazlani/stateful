@@ -9,9 +9,10 @@ class Setup(wiring: Wiring) {
   import actorSystem.dispatcher
 
   val accounts: List[Account] = (1 to 10).toList.map(x => accountFactory.make(x, singleThreadedEc()))
+  val wealthAccount           = new WealthAccount(accounts.take(2))
 
   def runSetup(): Unit = {
-    Reports.aggregate(accounts).runForeach(println)
+    Streams.aggregate(accounts).runForeach(println)
 
     accounts.foreach { account =>
       val futures = (101 to 120).map(x => Future(x))
@@ -37,7 +38,7 @@ class Setup(wiring: Wiring) {
       )
       .run(
         "setup"   -> this,
-        "reports" -> Reports,
+        "reports" -> Streams,
         "wiring"  -> wiring
       )
 
