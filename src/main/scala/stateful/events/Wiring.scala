@@ -16,7 +16,7 @@ class Wiring {
   implicit lazy val mat: Materializer        = ActorMaterializer()
 
   lazy val timer           = new Timer(actorSystem)
-  lazy val ledger          = new Ledger(timer)(singleThreadedEc())
+  lazy val ledger          = new Ledger()(singleThreadedEc())
   lazy val externalService = new ExternalService(timer)
   lazy val accountFactory  = new AccountFactory(externalService, ledger, mat)
 }

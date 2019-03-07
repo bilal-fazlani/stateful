@@ -10,8 +10,8 @@ object Streams {
 
   def aggregateBalance(accounts: List[Account]): Source[Int, NotUsed] = {
     aggregate(accounts).scan(0) {
-      case (total, Deposit(_, amount))    => total + amount
-      case (total, Withdrawal(_, amount)) => total - amount
+      case (acc, Deposit(_, amount))    => acc + amount
+      case (acc, Withdrawal(_, amount)) => acc - amount
     }
   }
 }
