@@ -7,9 +7,9 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 
 class Timer(actorSystem: ActorSystem) {
 
-  def delay[T](duration: FiniteDuration)(f: () => T)(implicit ec: ExecutionContext): Future[T] = {
-    val p: Promise[T] = Promise()
-    actorSystem.scheduler.scheduleOnce(duration: FiniteDuration)(p.success(f()))
+  def tick(duration: FiniteDuration)(ec: ExecutionContext): Future[Unit] = {
+    val p: Promise[Unit] = Promise()
+    actorSystem.scheduler.scheduleOnce(duration: FiniteDuration)(p.success(()))(ec)
     p.future
   }
 

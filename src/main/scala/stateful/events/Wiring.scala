@@ -9,13 +9,13 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutorService}
 
 class Wiring {
 
-  def makeEc(): ExecutionContextExecutorService =
+  def singleThreadedEc(): ExecutionContextExecutorService =
     ExecutionContext.fromExecutorService(Executors.newSingleThreadScheduledExecutor())
 
   implicit lazy val actorSystem: ActorSystem = ActorSystem("stateful")
   implicit lazy val mat: Materializer        = ActorMaterializer()
 
   lazy val timer          = new Timer(actorSystem)
-  lazy val ledger         = new Ledger(timer)(makeEc())
+  lazy val ledger         = new Ledger(timer)(singleThreadedEc())
   lazy val accountFactory = new AccountFactory(ledger, mat)
 }
