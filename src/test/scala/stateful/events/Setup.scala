@@ -1,4 +1,5 @@
 package stateful.events
+
 import ammonite.util.Res
 import os.Path
 
@@ -12,8 +13,6 @@ class Setup(wiring: Wiring) {
   val wealthAccount           = new WealthAccount(accounts.take(2))
 
   def runSetup(): Unit = {
-    Streams.aggregate(accounts).runForeach(println)
-
     accounts.foreach { account =>
       val futures = (101 to 120).map(x => Future(x))
       futures.foreach { future =>
