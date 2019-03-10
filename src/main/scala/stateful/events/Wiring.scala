@@ -19,6 +19,4 @@ class Wiring {
   lazy val ledger          = new Ledger()(singleThreadedEc())
   lazy val externalService = new ExternalService(timer)
   lazy val accountFactory  = new AccountFactory(externalService, ledger, mat)
-
-  lazy val simpleReader = new SimpleReader()(singleThreadedEc())
 }

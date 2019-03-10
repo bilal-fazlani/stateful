@@ -35,6 +35,7 @@ class BasicTest extends FunSuite with Matchers {
       .toSet
 
     import actorSystem.dispatcher
+    lazy val simpleReader = new SimpleReader()(singleThreadedEc())
 
     val eventualPersons = Future.unit.flatMap { _ =>
       val futures = (1 to 100000).map { _ =>
