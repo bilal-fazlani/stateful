@@ -3,7 +3,7 @@ package stateful.events
 import org.scalatest.{FunSuite, Matchers}
 import stateful.events.TestExtensions.FutureTestOnly
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class BasicTest extends FunSuite with Matchers {
 
@@ -35,7 +35,7 @@ class BasicTest extends FunSuite with Matchers {
       .toSet
 
     import actorSystem.dispatcher
-    lazy val simpleReader = new SimpleReader()(singleThreadedEc())
+    lazy val simpleReader = new SimpleReader()(ecFactory.make())
 
     val eventualPersons = Future.unit.flatMap { _ =>
       val futures = (1 to 100000).map { _ =>
@@ -53,6 +53,30 @@ class BasicTest extends FunSuite with Matchers {
     }
 
     persons shouldBe eventualPersons.get.toSet
+  }
+
+  test("error") {
+    implicit val ec: ExecutionContext = ecFactory.make()
+    val future                        = Future.unit.map(_ => 100)
+    val future2                       = Future.unit.map(_ => 1 / 0)
+    val future3                       = Future.unit.map(_ => 200)
+
+    Thread.sleep(1000)
+    println(future)
+    println(future2)
+    println(future3)
+  }
+
+  test("error-actor-ec") {
+    implicit val ec: ExecutionContext = ecFactory.make()
+    val future                        = Future.unit.map(_ => 100)
+    val future2                       = Future.unit.map(_ => 1 / 0)
+    val future3                       = Future.unit.map(_ => 200)
+
+    Thread.sleep(1000)
+    println(future)
+    println(future2)
+    println(future3)
   }
 
 }

@@ -2,7 +2,7 @@ package stateful.events
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class Ledger(implicit singleThreadedEc: ExecutionContext) {
+class Ledger(implicit ec: ExecutionContext) {
   private var _allActions = List.empty[Action]
 
   def record(action: Action): Future[Unit] = Future.unit.map { _ =>

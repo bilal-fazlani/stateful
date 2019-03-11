@@ -1,16 +1,14 @@
 package stateful.events
 
 import akka.NotUsed
-import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.scaladsl.Source
+import akka.stream.{Materializer, OverflowStrategy}
 import stateful.events.Action.{Deposit, Withdrawal}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class Account(accountNumber: Int, externalService: ExternalService, ledger: Ledger)(
-    implicit ec: ExecutionContext,
-    mat: Materializer
-) {
+class Account(accountNumber: Int, externalService: ExternalService, ledger: Ledger)(implicit ec: ExecutionContext,
+                                                                                    mat: Materializer) {
   private var _balance = 0
   private var _actions = List.empty[Action]
 
