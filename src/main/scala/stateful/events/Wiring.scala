@@ -2,7 +2,6 @@ package stateful.events
 
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
-import stateful.events.framework.ExecutionContextFactory
 
 class Wiring {
 

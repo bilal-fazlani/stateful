@@ -1,13 +1,9 @@
-package stateful.events.framework
+package stateful.events
 
 import java.util.concurrent.Executors
 
-import akka.actor.ActorSystem
-import akka.actor.typed.ActorRef
-import akka.actor.typed.scaladsl.adapter.UntypedActorSystemOps
-import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.scaladsl.Source
-import stateful.events.framework.ExecutorActor.{Execute, Msg}
+import akka.stream.{Materializer, OverflowStrategy}
 
 import scala.concurrent.ExecutionContext
 
