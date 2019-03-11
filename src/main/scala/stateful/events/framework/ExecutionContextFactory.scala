@@ -5,6 +5,8 @@ import java.util.concurrent.Executors
 import akka.actor.ActorSystem
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.adapter.UntypedActorSystemOps
+import akka.stream.{Materializer, OverflowStrategy}
+import akka.stream.scaladsl.Source
 import stateful.events.framework.ExecutorActor.{Execute, Msg}
 
 import scala.concurrent.ExecutionContext
@@ -16,12 +18,14 @@ trait ExecutionContextFactory {
 object ExecutionContextFactory {
   val singleThreaded: ExecutionContextFactory = () => ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
 
-  def actorBased(actorSystem: ActorSystem): ExecutionContextFactory = { () =>
+  def streamBased(implicit mat: Materializer): ExecutionContextFactory = { () =>
     new ExecutionContext {
-      private val actorRef: ActorRef[Msg] = actorSystem.spawnAnonymous(ExecutorActor.behaviour)
+      private val (queue, stream) = Source.queue[Runnable](1024, OverflowStrategy.dropHead).preMaterialize()
+      stream.runForeach(_.run())
 
-      override def execute(runnable: Runnable): Unit     = actorRef ! Execute(() => runnable.run())
+      override def execute(runnable: Runnable): Unit     = queue.offer(runnable)
       override def reportFailure(cause: Throwable): Unit = cause.printStackTrace()
     }
   }
+
 }

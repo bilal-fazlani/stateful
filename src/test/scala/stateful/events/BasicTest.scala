@@ -67,16 +67,4 @@ class BasicTest extends FunSuite with Matchers {
     println(future3)
   }
 
-  test("error-actor-ec") {
-    implicit val ec: ExecutionContext = ecFactory.make()
-    val future                        = Future.unit.map(_ => 100)
-    val future2                       = Future.unit.map(_ => 1 / 0)
-    val future3                       = Future.unit.map(_ => 200)
-
-    Thread.sleep(1000)
-    println(future)
-    println(future2)
-    println(future3)
-  }
-
 }

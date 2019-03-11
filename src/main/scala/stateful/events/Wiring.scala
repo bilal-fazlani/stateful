@@ -11,7 +11,7 @@ class Wiring {
 
   lazy val timer = new Timer(actorSystem)
 
-  val ecFactory: ExecutionContextFactory = ExecutionContextFactory.actorBased(actorSystem)
+  val ecFactory: ExecutionContextFactory = ExecutionContextFactory.streamBased
 //  val ecFactory: ExecutionContextFactory = ExecutionContextFactory.singleThreaded
   lazy val ledger          = new Ledger()(ecFactory.make())
   lazy val externalService = new ExternalService(timer)
