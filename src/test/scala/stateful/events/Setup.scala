@@ -9,7 +9,7 @@ class Setup(wiring: Wiring) {
   import wiring._
   import actorSystem.dispatcher
 
-  val accounts: List[Account] = (1 to 10).toList.map(x => accountFactory.make(x, ecFactory.make()))
+  val accounts: List[Account] = (1 to 10).toList.map(x => accountFactory.make(x))
   val wealthAccount           = new WealthAccount(accounts.take(2))(ecFactory.make(), mat)
 
   def runSetup(): Unit = {

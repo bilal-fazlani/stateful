@@ -50,6 +50,8 @@ class Account(accountNumber: Int, externalService: ExternalService, ledger: Ledg
   }
 }
 
-class AccountFactory(externalService: ExternalService, ledger: Ledger, mat: Materializer) {
-  def make(accountNumber: Int, ec: ExecutionContext) = new Account(accountNumber, externalService, ledger)(ec, mat)
+class AccountFactory(externalService: ExternalService, ledger: Ledger, ecFactory: ExecutionContextFactory)(
+    implicit mat: Materializer
+) {
+  def make(accountNumber: Int) = new Account(accountNumber, externalService, ledger)(ecFactory.make(), mat)
 }

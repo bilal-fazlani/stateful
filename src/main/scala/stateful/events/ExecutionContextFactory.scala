@@ -12,7 +12,13 @@ trait ExecutionContextFactory {
 }
 
 object ExecutionContextFactory {
-  val singleThreaded: ExecutionContextFactory = () => ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
+  val singleThreaded: ExecutionContextFactory = { () =>
+    ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
+  }
+
+  val multiThreaded: ExecutionContextFactory = { () =>
+    ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(20))
+  }
 
   def streamBased(implicit mat: Materializer): ExecutionContextFactory = { () =>
     new ExecutionContext {
@@ -20,6 +26,13 @@ object ExecutionContextFactory {
       stream.runForeach(_.run())
 
       override def execute(runnable: Runnable): Unit     = queue.offer(runnable)
+      override def reportFailure(cause: Throwable): Unit = cause.printStackTrace()
+    }
+  }
+
+  def synchronous: ExecutionContextFactory = { () =>
+    new ExecutionContext {
+      override def execute(runnable: Runnable): Unit     = runnable.run()
       override def reportFailure(cause: Throwable): Unit = cause.printStackTrace()
     }
   }
