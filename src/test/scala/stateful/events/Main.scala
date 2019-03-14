@@ -10,7 +10,6 @@ object Main {
     import wiring._
 
     setup.runSetup()
-    Streams.aggregate(accounts).runForeach(println)
 
     Thread.sleep(2000)
 

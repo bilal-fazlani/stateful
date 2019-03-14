@@ -36,9 +36,8 @@ class Setup(wiring: Wiring) {
                        |""".stripMargin
       )
       .run(
-        "setup"   -> this,
-        "reports" -> Streams,
-        "wiring"  -> wiring
+        "setup"  -> this,
+        "wiring" -> wiring
       )
 
 }
