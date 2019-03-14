@@ -1,6 +1,7 @@
 package stateful.events
 
 import akka.stream.Materializer
+import stateful.events.Action.{Deposit, Withdrawal}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -11,14 +12,13 @@ class WealthAccount(accounts: List[Account])(implicit ec: ExecutionContext, mat:
   Streams
     .aggregate(accounts)
     .mapAsync(1) { x =>
-      Future.unit.map(_ => _actions ::= x)
-    }
-    .runForeach(_ => ())
-
-  Streams
-    .aggregateBalance(accounts)
-    .mapAsync(1) { x =>
-      Future.unit.map(_ => _balance = x)
+      Future.unit.map { _ =>
+        _actions ::= x
+        x match {
+          case Deposit(_, amount)    => _balance += amount
+          case Withdrawal(_, amount) => _balance -= amount
+        }
+      }
     }
     .runForeach(_ => ())
 
