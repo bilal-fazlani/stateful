@@ -29,4 +29,7 @@ class WealthAccount(accounts: List[Account])(implicit ec: ExecutionContext, mat:
 
   def balance: Future[Int]          = Future.unit.map(_ => _balance)
   def actions: Future[List[Action]] = Future.unit.map(_ => _actions)
+  def actionsFor(accountNumber: Int): Future[List[Action]] = Future.unit.map { _ =>
+    _actions.filter(_.accountNumber == accountNumber)
+  }
 }

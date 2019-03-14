@@ -14,16 +14,22 @@ class BasicTest extends FunSuite with Matchers {
   import wiring._
 
   test("basic") {
-
     setup.runSetup()
     Thread.sleep(2000)
 
     ledger.actionsFor(1).get.length shouldBe 40
     accounts(0).actions.get.length shouldBe 40
+
     ledger.actionsFor(1).get shouldBe accounts(0).actions.get
-    (accounts(0).actions.get ::: accounts(1).actions.get).toSet shouldBe wealthAccount.actions.get.toSet
-    accounts.forall(_.balance.get == 0) shouldBe true
+    ledger.actionsFor(2).get shouldBe accounts(1).actions.get
+
+    wealthAccount.actionsFor(1).get shouldBe accounts(0).actions.get
+    wealthAccount.actionsFor(2).get shouldBe accounts(1).actions.get
+
+    wealthAccount.actions.get.toSet shouldBe (accounts(0).actions.get ::: accounts(1).actions.get).toSet
+
     wealthAccount.balance.get shouldBe 0
+    accounts.forall(_.balance.get == 0) shouldBe true
   }
 
   test("simple-reader") {
