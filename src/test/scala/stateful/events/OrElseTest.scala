@@ -4,59 +4,45 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 
 object OrElseTest extends App {
-  case class A()
-  case class Exec(f: Runnable)
 
-  def a0Beh(actorRef: ActorRef[Exec]): Behavior[A] = Behaviors.receiveMessage[A] {
-    case A() =>
-      println("a")
-      actorRef ! Exec(() => println("executing"))
-      Behaviors.same
+  case class A(x: Int)
+
+  val runnableBehaviour: Behavior[Runnable] = Behaviors.receiveMessage { runnable =>
+    println()
+    println("pre-run")
+    runnable.run()
+    println("post-run")
+    Behaviors.same
   }
 
-  lazy val execBeh = Behaviors.receiveMessagePartial[Any] {
-    case Exec(runnable) =>
-      println("*************")
-      runnable.run()
-      println("b")
-      Behaviors.same
-  }
-
-  lazy val beh: Behavior[A] = Behaviors
-    .setup[Any] { ctx =>
-      a0Beh(ctx.self)
+  def withRef[T](factory: ActorRef[Runnable] => Behavior[T]): Behavior[T] = {
+    val widenBehaviour = Behaviors.setup[Any] { ctx =>
+      factory(ctx.self)
         .widen[Any] {
-          case x: A => x
-        }
-        .orElse(execBeh)
-    }
-    .narrow[A]
-
-  def withEc[T](f: ActorRef[Exec] => Behavior[T]): Behavior[T] = {
-    val value = Behaviors.setup[Any] { ctx =>
-      f(ctx.self)
-        .widen[Any] {
-          case x: T =>
-            println("widening")
-            x
+          case x: T => x
         }
     }
-    execBeh.orElse { value }.narrow[T]
+    val widenRunnable = runnableBehaviour.widen[Any] {
+      case x: Runnable => x
+    }
+    widenRunnable.orElse(widenBehaviour).narrow[T]
   }
 
-  lazy val beh2 = withEc { actorRef =>
+  lazy val behaviour = withRef[A] { actorRef =>
     Behaviors.receiveMessage[A] {
-      case A() =>
+      case A(x) =>
         println("a")
-        actorRef ! Exec(() => println("executing"))
+        actorRef ! (() => println(s"executing $x"))
         Behaviors.same
     }
   }
 
-  val test = ActorSystem(beh2, "test")
+  val test = ActorSystem(behaviour, "test")
 
-  test ! A()
-  Thread.sleep(1000)
-  test ! A()
+  test ! A(1)
+  test ! A(2)
+  test ! A(3)
+  test ! A(4)
+  test ! A(5)
 
 }
