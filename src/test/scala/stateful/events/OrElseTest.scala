@@ -3,46 +3,76 @@ package stateful.events
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 
+import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
+
 object OrElseTest extends App {
 
-  case class A(x: Int)
+  trait Msg
+  case class Add(x: Int) extends Msg
+  case class GetTotal()  extends Msg
 
-  val runnableBehaviour: Behavior[Runnable] = Behaviors.receiveMessage { runnable =>
-    println()
-    println("pre-run")
-    runnable.run()
-    println("post-run")
-    Behaviors.same
-  }
-
-  def withRef[T](factory: ActorRef[Runnable] => Behavior[T]): Behavior[T] = {
+  def withRef[T: ClassTag](factory: ActorRef[Runnable] => Behavior[T]): Behavior[T] = {
     val widenBehaviour = Behaviors.setup[Any] { ctx =>
       factory(ctx.self)
         .widen[Any] {
           case x: T => x
         }
     }
-    val widenRunnable = runnableBehaviour.widen[Any] {
-      case x: Runnable => x
+    val widenRunnable = Behaviors.receiveMessagePartial[Any] {
+      case runnable: Runnable =>
+        runnable.run()
+        Behaviors.same
     }
-    widenRunnable.orElse(widenBehaviour).narrow[T]
+    widenBehaviour.orElse(widenRunnable).narrow[T]
   }
 
-  lazy val behaviour = withRef[A] { actorRef =>
-    Behaviors.receiveMessage[A] {
-      case A(x) =>
-        println("a")
-        actorRef ! (() => println(s"executing $x"))
+  def withEc[T: ClassTag](factory: ExecutionContext => Behavior[T]): Behavior[T] = {
+    withRef[T] { actorRef =>
+      val ec = new ExecutionContext {
+        override def execute(runnable: Runnable): Unit     = actorRef ! runnable
+        override def reportFailure(cause: Throwable): Unit = cause.printStackTrace()
+      }
+      factory(ec)
+    }
+  }
+
+  def behaviourWithState(implicit ec: ExecutionContext): Behavior[Msg] = Behaviors.setup { ctx =>
+    var total = 0
+
+    Behaviors.receiveMessage {
+      case Add(x) =>
+        Future.unit.foreach { _ =>
+          total += 1
+        }
+        Behaviors.same
+      case GetTotal() =>
+        println(total)
         Behaviors.same
     }
   }
 
-  val test = ActorSystem(behaviour, "test")
+  val behaviourWithSafeEc = withEc[Msg] { implicit ec =>
+    behaviourWithState
+  }
 
-  test ! A(1)
-  test ! A(2)
-  test ! A(3)
-  test ! A(4)
-  test ! A(5)
+  val behaviourWithDefaultEc = Behaviors.setup[Msg] { ctx =>
+    import ctx.executionContext
+    behaviourWithState
+  }
+
+  val test = ActorSystem(behaviourWithDefaultEc, "test")
+//  val test = ActorSystem(behaviourWithSafeEc, "test")
+
+  import test.executionContext
+
+  (1 to 10000).foreach { x =>
+    Future.unit.foreach { _ =>
+      test ! Add(x)
+    }
+  }
+
+  Thread.sleep(2000)
+  test ! GetTotal()
 
 }
