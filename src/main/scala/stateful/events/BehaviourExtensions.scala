@@ -19,10 +19,9 @@ object BehaviourExtensions {
 
   def withRunnableRef[T: ClassTag](factory: ActorRef[Runnable] => Behavior[T]): Behavior[T] = {
     val widenBehaviour = Behaviors.setup[Any] { ctx =>
-      factory(ctx.self)
-        .widen[Any] {
-          case x: T => x
-        }
+      factory(ctx.self).widen[Any] {
+        case x: T => x
+      }
     }
     val runnable = Behaviors.receiveMessagePartial[Any] {
       case x: Runnable =>

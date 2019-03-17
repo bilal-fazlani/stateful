@@ -16,19 +16,15 @@ trait ExecutionContextFactory {
 }
 
 object ExecutionContextFactory {
+
+  def default(implicit actorSystem: ActorSystem): ExecutionContextFactory = () => actorSystem.dispatcher
+
   val singleThreaded: ExecutionContextFactory = { () =>
     ExecutionContext.fromExecutorService(Executors.newSingleThreadExecutor())
   }
 
   val multiThreaded: ExecutionContextFactory = { () =>
     ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(20))
-  }
-
-  val synchronous: ExecutionContextFactory = { () =>
-    new ExecutionContext {
-      override def execute(runnable: Runnable): Unit     = runnable.run()
-      override def reportFailure(cause: Throwable): Unit = cause.printStackTrace()
-    }
   }
 
   def streamBased(implicit mat: Materializer): ExecutionContextFactory = { () =>
@@ -41,18 +37,22 @@ object ExecutionContextFactory {
     }
   }
 
-  def default(implicit actorSystem: ActorSystem): ExecutionContextFactory = () => actorSystem.dispatcher
-
   def actorBased(implicit actorSystem: ActorSystem): ExecutionContextFactory = { () =>
-    fromActor(actorSystem.spawnAnonymous(runnableBehaviour))
+    val actorRef = actorSystem.spawnAnonymous(runnableBehaviour)
+    new ExecutionContext {
+      override def execute(runnable: Runnable): Unit     = actorRef ! runnable
+      override def reportFailure(cause: Throwable): Unit = cause.printStackTrace()
+    }
   }
 
-  def fromActor(actorRef: ActorRef[Runnable]): ExecutionContext = new ExecutionContext {
-    override def execute(runnable: Runnable): Unit     = actorRef ! runnable
-    override def reportFailure(cause: Throwable): Unit = cause.printStackTrace()
+  val synchronous: ExecutionContextFactory = { () =>
+    new ExecutionContext {
+      override def execute(runnable: Runnable): Unit     = runnable.run()
+      override def reportFailure(cause: Throwable): Unit = cause.printStackTrace()
+    }
   }
 
-  val runnableBehaviour: Behavior[Runnable] = Behaviors.receiveMessage { x =>
+  private val runnableBehaviour: Behavior[Runnable] = Behaviors.receiveMessage { x =>
     x.run()
     Behaviors.same
   }
