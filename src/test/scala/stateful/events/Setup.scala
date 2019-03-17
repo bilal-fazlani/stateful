@@ -14,13 +14,14 @@ class Setup(wiring: Wiring) {
 
   def runSetup(): Unit = {
     accounts.foreach { account =>
-      val futures = (101 to 120).map(x => Future(x))
-      futures.foreach { future =>
-        future.foreach { x =>
-          account.deposit(x)
-        }
-        future.foreach { x =>
-          account.withdraw(x)
+      Future.unit.foreach { _ =>
+        (101 to 120).foreach { x =>
+          Future.unit.foreach { _ =>
+            account.deposit(x).failed.foreach(println)
+          }
+          Future.unit.foreach { _ =>
+            account.withdraw(x).failed.foreach(println)
+          }
         }
       }
     }
