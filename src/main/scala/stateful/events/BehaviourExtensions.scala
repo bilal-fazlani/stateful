@@ -1,4 +1,5 @@
 package stateful.events
+
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 
@@ -7,7 +8,7 @@ import scala.reflect.ClassTag
 
 object BehaviourExtensions {
 
-  def withEc[T: ClassTag](factory: ExecutionContext => Behavior[T]): Behavior[T] = {
+  def withSafeEc[T: ClassTag](factory: ExecutionContext => Behavior[T]): Behavior[T] = {
     withRunnableRef[T] { actorRef =>
       val ec = new ExecutionContext {
         override def execute(runnable: Runnable): Unit     = actorRef ! runnable
