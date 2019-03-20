@@ -2,6 +2,7 @@ package stateful.events
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorSystem, Behavior}
+import stateful.events.BehaviourExtensions.RichBehaviour
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,18 +16,15 @@ object SafeEcTest extends App {
   def behaviourWithState(implicit ec: ExecutionContext): Behavior[Msg] = Behaviors.setup { ctx =>
     var total = 0
 
-    Behaviors.receiveMessage {
+    Behaviors.basic {
       case Add(x) =>
         total += 1
-        Behaviors.same
       case AddViaCallback(x) =>
         Future.unit.foreach { _ =>
           total += 1
         }
-        Behaviors.same
       case GetTotal() =>
         println(total)
-        Behaviors.same
     }
   }
 
@@ -35,12 +33,12 @@ object SafeEcTest extends App {
     behaviourWithState
   }
 
-  val behaviourWithSafeEc = BehaviourExtensions.withSafeEc[Msg] { implicit ec =>
+  val behaviourWithSafeEc = Behaviors.withSafeEc[Msg] { implicit ec =>
     behaviourWithState
   }
 
-  val test = ActorSystem(behaviourWithDefaultEc, "test")
-//  val test = ActorSystem(behaviourWithSafeEc, "test")
+//  val test = ActorSystem(behaviourWithDefaultEc, "test")
+  val test = ActorSystem(behaviourWithSafeEc, "test")
   println("*************")
 
   import test.executionContext
